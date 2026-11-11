@@ -1,0 +1,333 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026 ganganray <https://github.com/ganganray>
+
+set -u
+
+XRAY_BIN="/usr/bin/xray"
+DEFAULT_CONF_DIR="/etc/xray"
+DEFAULT_CONF_FILE="/etc/xray/config.json"
+TMP_CONF_FILE="/etc/xray/.xray-lite.tmp"
+BAK_CONF_FILE="/etc/xray/.xray-lite.bak"
+UCI_CONF_FILE="/etc/config/xray"
+INIT_SCRIPT="/etc/init.d/xray"
+
+die() {
+	echo "ERROR: $*" >&2
+	exit 1
+}
+
+# Find valid datadir for geoip.dat / geosite.dat
+get_datadir() {
+	local dir=""
+	if [ -f "$UCI_CONF_FILE" ]; then
+		dir="$(uci -q get xray.config.datadir 2>/dev/null)"
+	fi
+	if [ -n "$dir" ] && [ -d "$dir" ]; then
+		echo "$dir"
+		return 0
+	fi
+	if [ -d "/usr/share/xray" ]; then
+		echo "/usr/share/xray"
+		return 0
+	elif [ -d "/usr/share/v2ray" ]; then
+		echo "/usr/share/v2ray"
+		return 0
+	fi
+	echo "/usr/share/xray"
+}
+
+# Ensure /etc/config/xray exists for non-standard environments
+ensure_uci() {
+	[ -d "/etc/config" ] || mkdir -p /etc/config
+	if [ ! -f "$UCI_CONF_FILE" ]; then
+		local datadir
+		datadir="$(get_datadir)"
+		cat <<EOF > "$UCI_CONF_FILE"
+
+config xray 'enabled'
+	option enabled '1'
+
+config xray 'config'
+	option confdir ''
+	list conffiles '/etc/xray/config.json'
+	option datadir '$datadir'
+	option dialer ''
+	option format 'json'
+EOF
+		chmod 0644 "$UCI_CONF_FILE"
+	fi
+}
+
+# Check if path is safe to read or write
+# Must be an absolute path, inside /etc/xray, without '..', and ending in .json
+validate_config_path() {
+	local path="$1"
+	[ -n "$path" ] || die "Configuration path cannot be empty"
+
+	case "$path" in
+		/*) ;;
+		*) die "Path must be absolute: $path" ;;
+	esac
+
+	case "$path" in
+		*..*) die "Path traversal (..) is not allowed: $path" ;;
+	esac
+
+	case "$path" in
+		*.json) ;;
+		*) die "Only .json configuration files are permitted: $path" ;;
+	esac
+
+	# Canonical parent directory validation
+	local parent
+	parent="$(dirname "$path")"
+	if [ "$parent" != "/etc/xray" ]; then
+		# Check if parent is configured as confdir in UCI
+		local uci_confdir=""
+		[ -f "$UCI_CONF_FILE" ] && uci_confdir="$(uci -q get xray.config.confdir 2>/dev/null)"
+		if [ -n "$uci_confdir" ] && [ "$parent" = "$uci_confdir" ]; then
+			:
+		else
+			die "Path $path must be inside /etc/xray or the configured confdir"
+		fi
+	fi
+}
+
+# List all available json config files
+action_list_configs() {
+	ensure_uci
+	local files=""
+	local uci_confdir=""
+	local uci_conffiles=""
+
+	if [ -f "$UCI_CONF_FILE" ]; then
+		uci_confdir="$(uci -q get xray.config.confdir 2>/dev/null)"
+		uci_conffiles="$(uci -q get xray.config.conffiles 2>/dev/null)"
+	fi
+
+	# Include conffiles from UCI
+	if [ -n "$uci_conffiles" ]; then
+		for f in $uci_conffiles; do
+			if [ -f "$f" ]; then
+				files="$files $f"
+			fi
+		done
+	fi
+
+	# Scan confdir if configured and exists
+	if [ -n "$uci_confdir" ] && [ -d "$uci_confdir" ]; then
+		for f in "$uci_confdir"/*.json; do
+			[ -f "$f" ] || continue
+			files="$files $f"
+		done
+	fi
+
+	# Also scan default /etc/xray directory for *.json
+	if [ -d "$DEFAULT_CONF_DIR" ]; then
+		for f in "$DEFAULT_CONF_DIR"/*.json; do
+			[ -f "$f" ] || continue
+			files="$files $f"
+		done
+	fi
+
+	# Output unique valid files, excluding .bak* and .example
+	local seen=""
+	local count=0
+	for f in $files; do
+		# Filter out unwanted files
+		case "$f" in
+			*.bak*|*.example*|*~|*.swp) continue ;;
+			*.json) ;;
+			*) continue ;;
+		esac
+
+		# Check duplicate
+		case " $seen " in
+			*" $f "*) ;;
+			*)
+				seen="$seen $f"
+				echo "$f"
+				count=$((count + 1))
+				;;
+		esac
+	done
+
+	# Fallback if no config file found
+	if [ "$count" -eq 0 ]; then
+		echo "$DEFAULT_CONF_FILE"
+	fi
+}
+
+# Read a specific config file
+action_read_config() {
+	local target="${1:-$DEFAULT_CONF_FILE}"
+	validate_config_path "$target"
+
+	if [ -f "$target" ]; then
+		cat "$target"
+	elif [ "$target" = "$DEFAULT_CONF_FILE" ] && [ -f "${DEFAULT_CONF_FILE}.example" ]; then
+		cat "${DEFAULT_CONF_FILE}.example"
+	else
+		die "Config file does not exist: $target"
+	fi
+}
+
+# Save and test config, rollback if test fails, restart service if succeeds
+action_save_config() {
+	local target="${1:-$DEFAULT_CONF_FILE}"
+	validate_config_path "$target"
+
+	[ -f "$TMP_CONF_FILE" ] || die "Temporary file $TMP_CONF_FILE not found"
+	[ -x "$XRAY_BIN" ] || die "Xray binary $XRAY_BIN is not executable"
+
+	local datadir
+	datadir="$(get_datadir)"
+
+	local format="json"
+	if [ -f "$UCI_CONF_FILE" ]; then
+		local u_format
+		u_format="$(uci -q get xray.config.format 2>/dev/null)"
+		[ -n "$u_format" ] && format="$u_format"
+	fi
+
+	# Create backup of current file if it exists
+	if [ -f "$target" ]; then
+		cp -p "$target" "$BAK_CONF_FILE" || die "Failed to create backup"
+		chmod 0600 "$BAK_CONF_FILE" 2>/dev/null || true
+	fi
+
+	# Move temporary file to target with strict 0600 permissions
+	chmod 0600 "$TMP_CONF_FILE" 2>/dev/null || true
+	mv -f "$TMP_CONF_FILE" "$target" || {
+		[ -f "$BAK_CONF_FILE" ] && mv -f "$BAK_CONF_FILE" "$target"
+		die "Failed to move temporary file to $target"
+	}
+	chmod 0600 "$target" 2>/dev/null || true
+
+	# Test configuration using xray run -test
+	local test_output
+	local test_rc=0
+	test_output=$(XRAY_LOCATION_ASSET="$datadir" "$XRAY_BIN" run -test -config "$target" -format "$format" 2>&1) || test_rc=$?
+
+	if [ "$test_rc" -ne 0 ]; then
+		# Rollback on test failure
+		if [ -f "$BAK_CONF_FILE" ]; then
+			mv -f "$BAK_CONF_FILE" "$target"
+			chmod 0600 "$target" 2>/dev/null || true
+		fi
+		echo "--- XRAY CONFIGURATION TEST FAILED ---" >&2
+		echo "$test_output" >&2
+		echo "Configuration has been rolled back to previous state." >&2
+		exit "$test_rc"
+	fi
+
+	# Test passed: remove backup
+	rm -f "$BAK_CONF_FILE"
+	chmod 0600 "$target" 2>/dev/null || true
+
+	# Restart service
+	if [ -x "$INIT_SCRIPT" ]; then
+		"$INIT_SCRIPT" restart >/dev/null 2>&1 || true
+	fi
+
+	echo "Configuration successfully validated and applied. Xray restarted."
+	exit 0
+}
+
+# Service lifecycle actions
+action_service() {
+	local cmd="${1:-}"
+	case "$cmd" in
+		start|stop|restart|reload) ;;
+		*) die "Invalid service action: $cmd (allowed: start|stop|restart|reload)" ;;
+	esac
+
+	[ -x "$INIT_SCRIPT" ] || die "Init script $INIT_SCRIPT is not executable"
+	"$INIT_SCRIPT" "$cmd"
+}
+
+# Read log from error logfile or system logread
+action_read_log() {
+	local lines="${1:-250}"
+	# Sanitize lines: must be positive integer
+	case "$lines" in
+		''|*[!0-9]*) lines=250 ;;
+	esac
+	[ "$lines" -gt 2000 ] && lines=2000
+	[ "$lines" -lt 10 ] && lines=10
+
+	# Check if custom log file is specified in /etc/xray/config.json
+	local custom_logfile=""
+	if [ -f "$DEFAULT_CONF_FILE" ]; then
+		custom_logfile=$(grep -o '"error"[[:space:]]*:[[:space:]]*"[^"]*"' "$DEFAULT_CONF_FILE" 2>/dev/null | head -n 1 | sed 's/.*"error"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+	fi
+
+	if [ -n "$custom_logfile" ] && [ "$custom_logfile" != "none" ] && [ -f "$custom_logfile" ]; then
+		tail -n "$lines" "$custom_logfile" 2>/dev/null
+		return 0
+	fi
+
+	# Fallback to logread filtered by xray
+	if command -v logread >/dev/null 2>&1; then
+		logread -e xray | tail -n "$lines"
+	else
+		echo "logread command not available"
+	fi
+}
+
+# Check environment details
+action_check_env() {
+	ensure_uci
+	local is_official_init="0"
+	if [ -f "$INIT_SCRIPT" ] && grep -q "config_load" "$INIT_SCRIPT" 2>/dev/null; then
+		is_official_init="1"
+	fi
+
+	local datadir
+	datadir="$(get_datadir)"
+
+	local xray_ver="unknown"
+	if [ -x "$XRAY_BIN" ]; then
+		xray_ver="$("$XRAY_BIN" version 2>/dev/null | head -n 1)"
+	fi
+
+	cat <<EOF
+{
+  "has_uci": $([ -f "$UCI_CONF_FILE" ] && echo "true" || echo "false"),
+  "is_official_init": $([ "$is_official_init" = "1" ] && echo "true" || echo "false"),
+  "datadir": "$datadir",
+  "xray_bin": "$XRAY_BIN",
+  "xray_version": "$xray_ver"
+}
+EOF
+}
+
+# Main dispatcher
+cmd="${1:-}"
+shift || true
+
+case "$cmd" in
+	list-configs) action_list_configs ;;
+	read-config) action_read_config "${1:-}" ;;
+	save-config) action_save_config "${1:-}" ;;
+	service) action_service "${1:-}" ;;
+	read-log) action_read_log "${1:-}" ;;
+	check-env) action_check_env ;;
+	ensure-uci) ensure_uci ;;
+	*)
+		cat <<EOF
+Usage: $0 <command> [arguments]
+
+Commands:
+  list-configs              List all available .json configuration files
+  read-config <filepath>    Read content of specified configuration file
+  save-config <filepath>    Save temporary config to file, test with xray, and rollback on error
+  service <action>          Manage service (start|stop|restart|reload)
+  read-log [lines]          Read recent xray logs
+  check-env                 Inspect environment capabilities
+  ensure-uci                Ensure /etc/config/xray exists
+EOF
+		exit 1
+		;;
+esac
