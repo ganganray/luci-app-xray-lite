@@ -35,11 +35,23 @@ jobs:
       - name: Build Package (.ipk)
         run: |
           cd sdk
+          sed -i \
+            -e 's,https://git.openwrt.org/feed/,https://github.com/openwrt/,' \
+            -e 's,https://git.openwrt.org/openwrt/,https://github.com/openwrt/,' \
+            -e 's,https://git.openwrt.org/project/,https://github.com/openwrt/,' \
+            feeds.conf.default
           ./scripts/feeds update packages luci || ./scripts/feeds update packages luci
-          ./scripts/feeds install luci-base
+          ./scripts/feeds install luci-base xray-core
+          if [ -f feeds/luci/modules/luci-base/src/Makefile ]; then
+            make -C feeds/luci/modules/luci-base/src po2lmo jsmin
+            sudo cp feeds/luci/modules/luci-base/src/po2lmo feeds/luci/modules/luci-base/src/jsmin /usr/local/bin/
+            mkdir -p staging_dir/host/bin
+            cp feeds/luci/modules/luci-base/src/po2lmo feeds/luci/modules/luci-base/src/jsmin staging_dir/host/bin/
+          fi
           mkdir -p package/luci-app-xray-lite
           cp -r ../Makefile ../LICENSE ../htdocs ../root ../po package/luci-app-xray-lite/
           echo "CONFIG_PACKAGE_luci-app-xray-lite=m" >> .config
+          echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
           make defconfig
           make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/ipk
@@ -76,15 +88,27 @@ jobs:
       - name: Build Package (.apk)
         run: |
           cd sdk
+          sed -i \
+            -e 's,https://git.openwrt.org/feed/,https://github.com/openwrt/,' \
+            -e 's,https://git.openwrt.org/openwrt/,https://github.com/openwrt/,' \
+            -e 's,https://git.openwrt.org/project/,https://github.com/openwrt/,' \
+            feeds.conf.default
           ./scripts/feeds update packages luci || ./scripts/feeds update packages luci
-          ./scripts/feeds install luci-base
+          ./scripts/feeds install luci-base xray-core
+          if [ -f feeds/luci/modules/luci-base/src/Makefile ]; then
+            make -C feeds/luci/modules/luci-base/src po2lmo jsmin
+            sudo cp feeds/luci/modules/luci-base/src/po2lmo feeds/luci/modules/luci-base/src/jsmin /usr/local/bin/
+            mkdir -p staging_dir/host/bin
+            cp feeds/luci/modules/luci-base/src/po2lmo feeds/luci/modules/luci-base/src/jsmin staging_dir/host/bin/
+          fi
           mkdir -p package/luci-app-xray-lite
           cp -r ../Makefile ../LICENSE ../htdocs ../root ../po package/luci-app-xray-lite/
           echo "CONFIG_PACKAGE_luci-app-xray-lite=m" >> .config
+          echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
           make defconfig
           make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/apk
-          find bin/ -type f -name "*xray-lite*.apk" -exec cp -v {} ../bin/apk/ \;
+          find bin/ -type f \( -name "*xray-lite*.apk" -o -name "*xray-lite*.ipk" \) -exec cp -v {} ../bin/apk/ \;
           ls -la ../bin/apk/
           if [ -z "$(ls -A ../bin/apk 2>/dev/null)" ]; then
             echo "Error: No .apk package was generated!"
