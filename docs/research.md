@@ -2,7 +2,7 @@
 
 ## 1. 上游 `net/xray-core` 包结构核实（OpenWrt & ImmortalWrt）
 
-我们对 `openwrt/packages` 与 `immortalwrt/packages` 的 `master`（SNAPSHOT）及 `openwrt-24.10` 分支下的 `net/xray-core` 进行了源码级比对，并结合两台测试设备（`n100-openwrt` 标准 ImmortalWrt 环境与 `jdcloud` 自定义环境）进行了实机核验。
+我们对 `openwrt/packages` 与 `immortalwrt/packages` 的 `master`（OpenWrt 25.x / SNAPSHOT）及 `openwrt-24.10` 分支下的 `net/xray-core` 进行了源码级比对，并结合两台测试设备（`n100-openwrt` 标准 ImmortalWrt 25.12 环境与 `jdcloud` 自定义环境）进行了实机核验。
 
 ### 1.1 `xray-core` 实际安装的文件清单（来自 `Makefile` 与 `n100-openwrt` 实测）
 
@@ -98,10 +98,10 @@ config xray 'config'
 
 ---
 
-## 3. OpenWrt SNAPSHOT（apk）与 24.10（ipk）及双测试机环境对比
+## 3. OpenWrt 25.x（apk）与 24.10（ipk）及双测试机环境对比
 
 ### 3.1 LuCI 前端 JS API 对比
-在 OpenWrt 24.10、ImmortalWrt 25.12（`n100-openwrt`）与 SNAPSHOT（`jdcloud`）中，客户端 LuCI JS 框架（`luci-base`）的核心模块 API **完全一致，无破坏性差异**：
+在 OpenWrt 24.10、ImmortalWrt 25.12（`n100-openwrt`）与 25.x / SNAPSHOT（`jdcloud`）中，客户端 LuCI JS 框架（`luci-base`）的核心模块 API **完全一致，无破坏性差异**：
 - `view` (`LuCI.view.extend({ load, render, handleSave, handleSaveApply, handleReset })`)
 - `form` (`form.Map`, `form.NamedSection`, `form.TypedSection`, `form.Flag`, `form.Value`, `form.ListValue`, `form.DynamicList`, `form.TextValue`, `form.DummyValue`, `form.Button`)
 - `rpc` (`rpc.declare({ object, method, params, expect })`)
@@ -115,7 +115,7 @@ config xray 'config'
 
 | 维度 | `n100-openwrt`（主测试机：标准 ImmortalWrt 环境） | `jdcloud` (`172.22.77.3`：扩展兼容性测试机) |
 | :--- | :--- | :--- |
-| **系统版本与架构** | ImmortalWrt 25.12.2 (`x86_64`, `apk`) | ImmortalWrt SNAPSHOT (`aarch64_cortex-a53`, `apk`) |
+| **系统版本与架构** | ImmortalWrt 25.12.2 (`x86_64`, `apk`) | ImmortalWrt 25.x (`aarch64_cortex-a53`, `apk`) |
 | **`xray-core` 包状态** | 已通过 `apk` 官方安装 (`xray-core-26.3.27-r1`) | 手动放置 `/usr/bin/xray` (`26.10.31`)，无 `apk` 包记录 |
 | **`/etc/config/xray`** | 已存在（官方默认模板） | 不存在 |
 | **`/etc/init.d/xray`** | 自定义脚本（可还原为官方 `xray.init` 进行标准测试） | 自定义脚本（硬编码 `-c /etc/xray/config.json`） |

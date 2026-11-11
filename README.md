@@ -69,7 +69,7 @@ Make sure `xray-core` is installed on your router:
 
 ---
 
-### Method A: ImmortalWrt / OpenWrt SNAPSHOT (`.apk`)
+### Method A: ImmortalWrt / OpenWrt 25.x (`.apk`)
 
 1. Download the latest `.apk` package to your router (replace `v1.0.0` with the actual release tag):
    ```sh

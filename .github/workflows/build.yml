@@ -24,29 +24,31 @@ jobs:
 
       - name: Setup OpenWrt SDK (24.10)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y zstd build-essential libncurses-dev gawk git libssl-dev gettext unzip file
-          SDK_NAME=$(curl -sL https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/sha256sums | grep "openwrt-sdk" | awk -F'*' '{print $2}')
+          SDK_NAME=$(curl -sL --retry 3 https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/sha256sums | grep "openwrt-sdk" | awk -F'*' '{print $2}')
           SDK_URL="https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/${SDK_NAME:-openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst}"
           echo "Downloading $SDK_URL..."
-          curl -sL "$SDK_URL" -o sdk.tar.zst
-          zstd -d sdk.tar.zst -o sdk.tar
-          tar -xf sdk.tar
-          rm -f sdk.tar.zst sdk.tar
-          mv openwrt-sdk-* sdk
+          curl -sL --retry 3 "$SDK_URL" -o sdk.tar.zst
+          mkdir -p sdk
+          zstd -dc sdk.tar.zst | tar -xf - -C sdk --strip-components=1
+          rm -f sdk.tar.zst
 
       - name: Build Package (.ipk)
         run: |
           cd sdk
-          ./scripts/feeds update -a || ./scripts/feeds update -a
+          ./scripts/feeds update packages luci || ./scripts/feeds update packages luci
           ./scripts/feeds install luci-base
           mkdir -p package/luci-app-xray-lite
           cp -r ../Makefile ../LICENSE ../htdocs ../root ../po package/luci-app-xray-lite/
+          echo "CONFIG_PACKAGE_luci-app-xray-lite=m" >> .config
           make defconfig
           make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/ipk
-          find bin/ -type f -name "*xray-lite*.ipk" -exec cp {} ../bin/ipk/ \;
+          find bin/ -type f -name "*xray-lite*.ipk" -exec cp -v {} ../bin/ipk/ \;
           ls -la ../bin/ipk/
+          if [ -z "$(ls -A ../bin/ipk 2>/dev/null)" ]; then
+            echo "Error: No .ipk package was generated!"
+            exit 1
+          fi
 
       - name: Upload IPK Artifact
         uses: actions/upload-artifact@v4
@@ -55,37 +57,39 @@ jobs:
           path: bin/ipk/*
 
   build-apk:
-    name: Build .apk (SNAPSHOT)
+    name: Build .apk (OpenWrt 25.x)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup OpenWrt SDK (SNAPSHOT)
+      - name: Setup OpenWrt SDK (OpenWrt 25.x)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y zstd build-essential libncurses-dev gawk git libssl-dev gettext unzip file
-          SDK_NAME=$(curl -sL https://downloads.openwrt.org/snapshots/targets/x86/64/sha256sums | grep "openwrt-sdk" | awk -F'*' '{print $2}')
+          SDK_NAME=$(curl -sL --retry 3 https://downloads.openwrt.org/snapshots/targets/x86/64/sha256sums | grep "openwrt-sdk" | awk -F'*' '{print $2}')
           SDK_URL="https://downloads.openwrt.org/snapshots/targets/x86/64/$SDK_NAME"
           echo "Downloading $SDK_URL..."
-          curl -sL "$SDK_URL" -o sdk.tar.zst
-          zstd -d sdk.tar.zst -o sdk.tar
-          tar -xf sdk.tar
-          rm -f sdk.tar.zst sdk.tar
-          mv openwrt-sdk-* sdk
+          curl -sL --retry 3 "$SDK_URL" -o sdk.tar.zst
+          mkdir -p sdk
+          zstd -dc sdk.tar.zst | tar -xf - -C sdk --strip-components=1
+          rm -f sdk.tar.zst
 
       - name: Build Package (.apk)
         run: |
           cd sdk
-          ./scripts/feeds update -a || ./scripts/feeds update -a
+          ./scripts/feeds update packages luci || ./scripts/feeds update packages luci
           ./scripts/feeds install luci-base
           mkdir -p package/luci-app-xray-lite
           cp -r ../Makefile ../LICENSE ../htdocs ../root ../po package/luci-app-xray-lite/
+          echo "CONFIG_PACKAGE_luci-app-xray-lite=m" >> .config
           make defconfig
           make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/apk
-          find bin/ -type f -name "*xray-lite*.apk" -exec cp {} ../bin/apk/ \;
+          find bin/ -type f -name "*xray-lite*.apk" -exec cp -v {} ../bin/apk/ \;
           ls -la ../bin/apk/
+          if [ -z "$(ls -A ../bin/apk 2>/dev/null)" ]; then
+            echo "Error: No .apk package was generated!"
+            exit 1
+          fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -110,7 +114,7 @@ jobs:
       - name: Prepare Release Assets
         run: |
           mkdir -p release-dist
-          find release-artifacts/ -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp {} release-dist/ \;
+          find release-artifacts/ -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp -v {} release-dist/ \;
           cd release-dist
           sha256sum * > sha256sums.txt
           cat sha256sums.txt

@@ -69,7 +69,7 @@
 
 ---
 
-### 方法一：ImmortalWrt / OpenWrt SNAPSHOT (`.apk`)
+### 方法一：ImmortalWrt / OpenWrt 25.x (`.apk`)
 
 1. 在路由器上直接下载最新的 `.apk` 安装包（请将 `v1.0.0` 替换为最新版本号）：
    ```sh
