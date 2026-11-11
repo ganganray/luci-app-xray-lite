@@ -41,18 +41,23 @@ jobs:
             -e 's,https://git.openwrt.org/project/,https://github.com/openwrt/,' \
             feeds.conf.default
           ./scripts/feeds update packages luci || ./scripts/feeds update packages luci
-          ./scripts/feeds install luci-base xray-core
+          ./scripts/feeds install luci-base
           if [ -f feeds/luci/modules/luci-base/src/Makefile ]; then
-            make -C feeds/luci/modules/luci-base/src po2lmo jsmin
-            sudo cp feeds/luci/modules/luci-base/src/po2lmo feeds/luci/modules/luci-base/src/jsmin /usr/local/bin/
+            make -C feeds/luci/modules/luci-base/src po2lmo
+            sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/bin/po2lmo
+            sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/local/bin/po2lmo
             mkdir -p staging_dir/host/bin
-            cp feeds/luci/modules/luci-base/src/po2lmo feeds/luci/modules/luci-base/src/jsmin staging_dir/host/bin/
+            cp feeds/luci/modules/luci-base/src/po2lmo staging_dir/host/bin/
           fi
           mkdir -p package/luci-app-xray-lite
           cp -r ../Makefile ../LICENSE ../htdocs ../root ../po package/luci-app-xray-lite/
           echo "CONFIG_PACKAGE_luci-app-xray-lite=m" >> .config
           echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
+          sed -i "s/CONFIG_LUCI_CSSTIDY=y/# CONFIG_LUCI_CSSTIDY is not set/" .config 2>/dev/null || true
+          sed -i "s/CONFIG_LUCI_SRCDIET=y/# CONFIG_LUCI_SRCDIET is not set/" .config 2>/dev/null || true
           make defconfig
+          sed -i "s/CONFIG_LUCI_CSSTIDY=y/# CONFIG_LUCI_CSSTIDY is not set/" .config 2>/dev/null || true
+          sed -i "s/CONFIG_LUCI_SRCDIET=y/# CONFIG_LUCI_SRCDIET is not set/" .config 2>/dev/null || true
           make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/ipk
           find bin/ -type f -name "*xray-lite*.ipk" -exec cp -v {} ../bin/ipk/ \;
@@ -94,18 +99,23 @@ jobs:
             -e 's,https://git.openwrt.org/project/,https://github.com/openwrt/,' \
             feeds.conf.default
           ./scripts/feeds update packages luci || ./scripts/feeds update packages luci
-          ./scripts/feeds install luci-base xray-core
+          ./scripts/feeds install luci-base
           if [ -f feeds/luci/modules/luci-base/src/Makefile ]; then
-            make -C feeds/luci/modules/luci-base/src po2lmo jsmin
-            sudo cp feeds/luci/modules/luci-base/src/po2lmo feeds/luci/modules/luci-base/src/jsmin /usr/local/bin/
+            make -C feeds/luci/modules/luci-base/src po2lmo
+            sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/bin/po2lmo
+            sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/local/bin/po2lmo
             mkdir -p staging_dir/host/bin
-            cp feeds/luci/modules/luci-base/src/po2lmo feeds/luci/modules/luci-base/src/jsmin staging_dir/host/bin/
+            cp feeds/luci/modules/luci-base/src/po2lmo staging_dir/host/bin/
           fi
           mkdir -p package/luci-app-xray-lite
           cp -r ../Makefile ../LICENSE ../htdocs ../root ../po package/luci-app-xray-lite/
           echo "CONFIG_PACKAGE_luci-app-xray-lite=m" >> .config
           echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
+          sed -i "s/CONFIG_LUCI_CSSTIDY=y/# CONFIG_LUCI_CSSTIDY is not set/" .config 2>/dev/null || true
+          sed -i "s/CONFIG_LUCI_SRCDIET=y/# CONFIG_LUCI_SRCDIET is not set/" .config 2>/dev/null || true
           make defconfig
+          sed -i "s/CONFIG_LUCI_CSSTIDY=y/# CONFIG_LUCI_CSSTIDY is not set/" .config 2>/dev/null || true
+          sed -i "s/CONFIG_LUCI_SRCDIET=y/# CONFIG_LUCI_SRCDIET is not set/" .config 2>/dev/null || true
           make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/apk
           find bin/ -type f \( -name "*xray-lite*.apk" -o -name "*xray-lite*.ipk" \) -exec cp -v {} ../bin/apk/ \;
