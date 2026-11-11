@@ -1,0 +1,224 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Xray"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Configuration"
+msgstr ""
+
+msgid "Log"
+msgstr ""
+
+msgid "RUNNING"
+msgstr ""
+
+msgid "NOT RUNNING"
+msgstr ""
+
+msgid "Service Action"
+msgstr ""
+
+msgid "Executing service %s..."
+msgstr ""
+
+msgid "Service %s succeeded."
+msgstr ""
+
+msgid "Service %s failed: %s"
+msgstr ""
+
+msgid "Service %s error: %s"
+msgstr ""
+
+msgid "Xray Settings"
+msgstr ""
+
+msgid "Lightweight Xray configuration for local outbound proxy backend (cooperating with dae, sing-box, mihomo, etc.)."
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Stop"
+msgstr ""
+
+msgid "Restart"
+msgstr ""
+
+msgid "Service Status"
+msgstr ""
+
+msgid "Collecting data…"
+msgstr ""
+
+msgid "Control Actions"
+msgstr ""
+
+msgid "Custom Startup Script Detected: "
+msgstr ""
+
+msgid "A custom /etc/init.d/xray startup script is running. Control buttons will trigger your custom script. UCI options below are available for standard migration and configuration testing."
+msgstr ""
+
+msgid "Service Switch"
+msgstr ""
+
+msgid "Enable Xray Service"
+msgstr ""
+
+msgid "Enable or disable Xray service auto-start."
+msgstr ""
+
+msgid "Runtime Parameters"
+msgstr ""
+
+msgid "Configuration Directory (confdir)"
+msgstr ""
+
+msgid "Directory containing multiple JSON files (maps to -confdir). Note: Leave empty when specifying single conffiles to prevent duplicate loading."
+msgstr ""
+
+msgid "Configuration Files (conffiles)"
+msgstr ""
+
+msgid "List of specific configuration files (maps to -config). Default: /etc/xray/config.json"
+msgstr ""
+
+msgid "Asset Directory (datadir)"
+msgstr ""
+
+msgid "Directory containing geoip.dat and geosite.dat (injected as XRAY_LOCATION_ASSET)."
+msgstr ""
+
+msgid "Configuration Format"
+msgstr ""
+
+msgid "Browser Dialer"
+msgstr ""
+
+msgid "Optional browser dialer target address (injected as XRAY_BROWSER_DIALER)."
+msgstr ""
+
+msgid "Failed to load configuration: %s"
+msgstr ""
+
+msgid "Loading Configuration"
+msgstr ""
+
+msgid "Loading %s..."
+msgstr ""
+
+msgid "Failed to read file: %s"
+msgstr ""
+
+msgid "JSON Syntax Error (Client Pre-check)"
+msgstr ""
+
+msgid "JSON syntax validation failed! Please check your configuration."
+msgstr ""
+
+msgid "Saving & Testing"
+msgstr ""
+
+msgid "Testing configuration with Xray core..."
+msgstr ""
+
+msgid "Configuration Applied Successfully"
+msgstr ""
+
+msgid "Configuration tested OK. Service restarted successfully."
+msgstr ""
+
+msgid "Configuration validated and service restarted."
+msgstr ""
+
+msgid "Xray Validation Failed - Rolled Back"
+msgstr ""
+
+msgid "The configuration test failed. Your changes were NOT applied, and the previous configuration was restored. Details:"
+msgstr ""
+
+msgid "Unknown error"
+msgstr ""
+
+msgid "Configuration test failed! Automatic rollback performed."
+msgstr ""
+
+msgid "Save Error"
+msgstr ""
+
+msgid "JSON formatted with 2 spaces indentation."
+msgstr ""
+
+msgid "Cannot format invalid JSON: %s"
+msgstr ""
+
+msgid "Content restored to last loaded state."
+msgstr ""
+
+msgid "Save & Apply"
+msgstr ""
+
+msgid "Format JSON"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Xray Configuration"
+msgstr ""
+
+msgid "Directly edit Xray raw JSON configuration. Changes are tested with \"xray run -test\" before restarting; if the test fails, changes are automatically rolled back to prevent service disruption."
+msgstr ""
+
+msgid "Target File:"
+msgstr ""
+
+msgid "(Mode: 0600)"
+msgstr ""
+
+msgid "Collecting log data…"
+msgstr ""
+
+msgid "Last 100 lines"
+msgstr ""
+
+msgid "Last 250 lines"
+msgstr ""
+
+msgid "Last 500 lines"
+msgstr ""
+
+msgid "Last 1000 lines"
+msgstr ""
+
+msgid "Scroll to Bottom"
+msgstr ""
+
+msgid "Scroll to Top"
+msgstr ""
+
+msgid "Clear Screen"
+msgstr ""
+
+msgid "Screen cleared."
+msgstr ""
+
+msgid "No Xray logs found or service is stopped."
+msgstr ""
+
+msgid "Failed to read logs: %s"
+msgstr ""
+
+msgid "Xray Logs"
+msgstr ""
+
+msgid "Real-time system log output filtered for Xray process. Refreshes every %s seconds."
+msgstr ""
+
+msgid "Lines:"
+msgstr ""

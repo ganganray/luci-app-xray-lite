@@ -1,0 +1,230 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: luci-app-xray-lite\n"
+"Language-Team: Chinese (Simplified) <zh-Hans@li.org>\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Xray"
+msgstr "Xray"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Configuration"
+msgstr "配置"
+
+msgid "Log"
+msgstr "日志"
+
+msgid "RUNNING"
+msgstr "运行中"
+
+msgid "NOT RUNNING"
+msgstr "未运行"
+
+msgid "Service Action"
+msgstr "服务操作"
+
+msgid "Executing service %s..."
+msgstr "正在执行服务操作 %s..."
+
+msgid "Service %s succeeded."
+msgstr "服务操作 %s 成功。"
+
+msgid "Service %s failed: %s"
+msgstr "服务操作 %s 失败：%s"
+
+msgid "Service %s error: %s"
+msgstr "服务操作 %s 出错：%s"
+
+msgid "Xray Settings"
+msgstr "Xray 设置"
+
+msgid "Lightweight Xray configuration for local outbound proxy backend (cooperating with dae, sing-box, mihomo, etc.)."
+msgstr "轻量级 Xray 本地出站代理后端配置（专用于配合 dae、sing-box、mihomo 等调度）。"
+
+msgid "Start"
+msgstr "启动"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Restart"
+msgstr "重启"
+
+msgid "Service Status"
+msgstr "运行状态"
+
+msgid "Collecting data…"
+msgstr "正在收集数据…"
+
+msgid "Control Actions"
+msgstr "服务控制"
+
+msgid "Custom Startup Script Detected: "
+msgstr "检测到自定义启动脚本："
+
+msgid "A custom /etc/init.d/xray startup script is running. Control buttons will trigger your custom script. UCI options below are available for standard migration and configuration testing."
+msgstr "当前系统正由自定义的 /etc/init.d/xray 脚本管理。控制按钮将直接调用该脚本。下方 UCI 选项仍可用于向官方标准脚本迁移及配置校验。"
+
+msgid "Service Switch"
+msgstr "服务开关"
+
+msgid "Enable Xray Service"
+msgstr "启用 Xray 服务"
+
+msgid "Enable or disable Xray service auto-start."
+msgstr "启用或禁用 Xray 服务自启动。"
+
+msgid "Runtime Parameters"
+msgstr "运行参数"
+
+msgid "Configuration Directory (confdir)"
+msgstr "配置目录 (confdir)"
+
+msgid "Directory containing multiple JSON files (maps to -confdir). Note: Leave empty when specifying single conffiles to prevent duplicate loading."
+msgstr "包含多个 JSON 配置文件的目录（映射至 -confdir）。注意：若已在下方指定了单独文件且文件位于该目录内，请留空本项以防止重复加载。"
+
+msgid "Configuration Files (conffiles)"
+msgstr "配置文件列表 (conffiles)"
+
+msgid "List of specific configuration files (maps to -config). Default: /etc/xray/config.json"
+msgstr "具体配置文件路径列表（映射至 -config）。默认值：/etc/xray/config.json"
+
+msgid "Asset Directory (datadir)"
+msgstr "规则资源目录 (datadir)"
+
+msgid "Directory containing geoip.dat and geosite.dat (injected as XRAY_LOCATION_ASSET)."
+msgstr "包含 geoip.dat 与 geosite.dat 的目录（注入环境变量 XRAY_LOCATION_ASSET）。"
+
+msgid "Configuration Format"
+msgstr "配置格式"
+
+msgid "Browser Dialer"
+msgstr "浏览器转发器 (dialer)"
+
+msgid "Optional browser dialer target address (injected as XRAY_BROWSER_DIALER)."
+msgstr "可选的浏览器拨号转发目标地址（注入环境变量 XRAY_BROWSER_DIALER）。"
+
+msgid "Failed to load configuration: %s"
+msgstr "加载配置失败：%s"
+
+msgid "Loading Configuration"
+msgstr "正在加载配置"
+
+msgid "Loading %s..."
+msgstr "正在加载 %s..."
+
+msgid "Failed to read file: %s"
+msgstr "读取文件失败：%s"
+
+msgid "JSON Syntax Error (Client Pre-check)"
+msgstr "JSON 语法错误（浏览器前端预检）"
+
+msgid "JSON syntax validation failed! Please check your configuration."
+msgstr "JSON 语法校验失败！请检查配置文件内容。"
+
+msgid "Saving & Testing"
+msgstr "正在保存与测试"
+
+msgid "Testing configuration with Xray core..."
+msgstr "正在调用 Xray 核心执行配置测试..."
+
+msgid "Configuration Applied Successfully"
+msgstr "配置应用成功"
+
+msgid "Configuration tested OK. Service restarted successfully."
+msgstr "配置校验通过，服务已成功重启生效。"
+
+msgid "Configuration validated and service restarted."
+msgstr "配置校验通过且服务已重启。"
+
+msgid "Xray Validation Failed - Rolled Back"
+msgstr "Xray 校验失败 - 已自动回滚"
+
+msgid "The configuration test failed. Your changes were NOT applied, and the previous configuration was restored. Details:"
+msgstr "配置测试失败。您的更改未被应用，已自动还原到修改前的旧配置。详细报错信息："
+
+msgid "Unknown error"
+msgstr "未知错误"
+
+msgid "Configuration test failed! Automatic rollback performed."
+msgstr "配置测试失败！已执行自动回滚。"
+
+msgid "Save Error"
+msgstr "保存错误"
+
+msgid "JSON formatted with 2 spaces indentation."
+msgstr "已使用 2 空格缩进格式化 JSON。"
+
+msgid "Cannot format invalid JSON: %s"
+msgstr "无法格式化非法的 JSON：%s"
+
+msgid "Content restored to last loaded state."
+msgstr "内容已还原为上次加载的状态。"
+
+msgid "Save & Apply"
+msgstr "保存并应用"
+
+msgid "Format JSON"
+msgstr "格式化 JSON"
+
+msgid "Reset"
+msgstr "重置"
+
+msgid "Xray Configuration"
+msgstr "Xray 配置文件"
+
+msgid "Directly edit Xray raw JSON configuration. Changes are tested with \"xray run -test\" before restarting; if the test fails, changes are automatically rolled back to prevent service disruption."
+msgstr "直接编辑 Xray 原始 JSON 配置。修改后会自动执行 \"xray run -test\" 校验；若测试失败将自动回滚以避免服务中断。"
+
+msgid "Target File:"
+msgstr "目标文件："
+
+msgid "(Mode: 0600)"
+msgstr "（权限：0600）"
+
+msgid "Collecting log data…"
+msgstr "正在收集日志数据…"
+
+msgid "Last 100 lines"
+msgstr "最近 100 行"
+
+msgid "Last 250 lines"
+msgstr "最近 250 行"
+
+msgid "Last 500 lines"
+msgstr "最近 500 行"
+
+msgid "Last 1000 lines"
+msgstr "最近 1000 行"
+
+msgid "Scroll to Bottom"
+msgstr "滚动到底部"
+
+msgid "Scroll to Top"
+msgstr "滚动到顶部"
+
+msgid "Clear Screen"
+msgstr "清屏"
+
+msgid "Screen cleared."
+msgstr "屏幕已清除。"
+
+msgid "No Xray logs found or service is stopped."
+msgstr "未找到 Xray 日志或服务已停止。"
+
+msgid "Failed to read logs: %s"
+msgstr "读取日志失败：%s"
+
+msgid "Xray Logs"
+msgstr "Xray 日志"
+
+msgid "Real-time system log output filtered for Xray process. Refreshes every %s seconds."
+msgstr "针对 Xray 进程过滤的实时系统日志输出。每 %s 秒自动刷新一次。"
+
+msgid "Lines:"
+msgstr "显示行数："
