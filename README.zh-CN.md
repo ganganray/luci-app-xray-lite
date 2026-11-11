@@ -60,24 +60,67 @@
 
 ## 📥 安装方法
 
-从 [GitHub Releases](https://github.com/ganganray/luci-app-xray-lite/releases) 页面下载对应格式的安装包：
+本项目尚未并入 OpenWrt / ImmortalWrt 官方软件源。请前往 [GitHub Releases](https://github.com/ganganray/luci-app-xray-lite/releases) 页面下载预编译的 `.apk` 或 `.ipk` 包进行手动安装。
 
-### 适用于 ImmortalWrt / OpenWrt SNAPSHOT (apk)
+### 前置要求
+确保路由器上已安装 `xray-core` 核心：
+- `apk` 系统：`apk add xray-core`（或自行放置二进制至 `/usr/bin/xray`）
+- `opkg` 系统：`opkg update && opkg install xray-core`
+
+---
+
+### 方法一：ImmortalWrt / OpenWrt SNAPSHOT (`.apk`)
+
+1. 在路由器上直接下载最新的 `.apk` 安装包（请将 `v1.0.0` 替换为最新版本号）：
+   ```sh
+   wget https://github.com/ganganray/luci-app-xray-lite/releases/download/v1.0.0/luci-app-xray-lite-1.0.0-r1.apk -O /tmp/luci-app-xray-lite.apk
+   ```
+   *(或者先下载到电脑，通过 SCP 上传：`scp luci-app-xray-lite*.apk root@192.168.1.1:/tmp/`)*
+
+2. 使用 `apk` 免签名安全安装：
+   ```sh
+   apk add --allow-untrusted /tmp/luci-app-xray-lite.apk
+   ```
+
+3. 清理缓存：
+   ```sh
+   rm -f /tmp/luci-indexcache*
+   ```
+
+---
+
+### 方法二：OpenWrt 24.10 / opkg (`.ipk`)
+
+1. 在路由器上直接下载最新的 `.ipk` 安装包（请将 `v1.0.0` 替换为最新版本号）：
+   ```sh
+   wget https://github.com/ganganray/luci-app-xray-lite/releases/download/v1.0.0/luci-app-xray-lite_1.0.0-1_all.ipk -O /tmp/luci-app-xray-lite.ipk
+   ```
+   *(或者先下载到电脑，通过 SCP 上传：`scp luci-app-xray-lite*.ipk root@192.168.1.1:/tmp/`)*
+
+2. 使用 `opkg` 本地安装：
+   ```sh
+   opkg install /tmp/luci-app-xray-lite.ipk
+   ```
+
+3. 清理缓存：
+   ```sh
+   rm -f /tmp/luci-indexcache*
+   ```
+
+---
+
+### 方法三：开发者源码直接部署（免打包编译）
+
+如果你不想下载安装包，也可以直接通过 SSH 将源码部署到路由器：
 ```sh
-# 将 .apk 上传到路由器，免签名安装：
-apk add --allow-untrusted luci-app-xray-lite-*.apk
+git clone https://github.com/ganganray/luci-app-xray-lite.git
+cd luci-app-xray-lite
+tar -C root -cf - . | ssh root@router "tar -xf - -C /"
+tar -C htdocs -cf - . | ssh root@router "tar -xf - -C /www"
+ssh root@router "chmod +x /usr/libexec/xray-lite-ctl /etc/uci-defaults/99-luci-app-xray-lite && /etc/uci-defaults/99-luci-app-xray-lite"
 ```
 
-### 适用于 OpenWrt 24.10 / opkg 系统 (ipk)
-```sh
-opkg update
-opkg install luci-app-xray-lite_*.ipk
-```
-
-安装完成后，刷新浏览器或清理 LuCI 缓存即可在菜单中看到【服务】→【Xray】：
-```sh
-rm -f /tmp/luci-indexcache*
-```
+> **提示**：安装完成后，如果已打开的浏览器页面中未立即出现【服务】→【Xray】菜单，**请退出（Logout）并重新登录 LuCI**（现代 LuCI 前端会在浏览器 `sessionStorage` 中缓存菜单树，重新登录即可自动刷新）。
 
 ---
 

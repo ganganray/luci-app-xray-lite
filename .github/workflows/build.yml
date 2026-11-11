@@ -24,9 +24,11 @@ jobs:
 
       - name: Setup OpenWrt SDK (24.10)
         run: |
-          SDK_URL="https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
           sudo apt-get update
           sudo apt-get install -y zstd build-essential libncurses5-dev gawk git subversion libssl-dev gettext unzip file
+          SDK_NAME=$(curl -sL https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/sha256sums | grep "openwrt-sdk" | awk -F'*' '{print $2}')
+          SDK_URL="https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/${SDK_NAME:-openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst}"
+          echo "Downloading $SDK_URL..."
           curl -sL "$SDK_URL" -o sdk.tar.zst
           tar -I zstd -xf sdk.tar.zst
           mv openwrt-sdk-* sdk
@@ -34,14 +36,15 @@ jobs:
       - name: Build Package (.ipk)
         run: |
           cd sdk
-          ./scripts/feeds update base luci
-          ./scripts/feeds install luci-base
+          ./scripts/feeds update base luci packages
+          ./scripts/feeds install luci-base xray-core
           mkdir -p package/luci-app-xray-lite
           cp -r ../Makefile ../LICENSE ../htdocs ../root ../po package/luci-app-xray-lite/
           make defconfig
-          make package/luci-app-xray-lite/compile V=s
+          make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/ipk
           find bin/ -type f -name "*xray-lite*.ipk" -exec cp {} ../bin/ipk/ \;
+          ls -la ../bin/ipk/
 
       - name: Upload IPK Artifact
         uses: actions/upload-artifact@v4
@@ -58,9 +61,11 @@ jobs:
 
       - name: Setup OpenWrt SDK (SNAPSHOT)
         run: |
-          SDK_URL="https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.2.0_musl.Linux-x86_64.tar.zst"
           sudo apt-get update
           sudo apt-get install -y zstd build-essential libncurses5-dev gawk git subversion libssl-dev gettext unzip file apk-tools
+          SDK_NAME=$(curl -sL https://downloads.openwrt.org/snapshots/targets/x86/64/sha256sums | grep "openwrt-sdk" | awk -F'*' '{print $2}')
+          SDK_URL="https://downloads.openwrt.org/snapshots/targets/x86/64/$SDK_NAME"
+          echo "Downloading $SDK_URL..."
           curl -sL "$SDK_URL" -o sdk.tar.zst
           tar -I zstd -xf sdk.tar.zst
           mv openwrt-sdk-* sdk
@@ -68,14 +73,15 @@ jobs:
       - name: Build Package (.apk)
         run: |
           cd sdk
-          ./scripts/feeds update base luci
-          ./scripts/feeds install luci-base
+          ./scripts/feeds update base luci packages
+          ./scripts/feeds install luci-base xray-core
           mkdir -p package/luci-app-xray-lite
           cp -r ../Makefile ../LICENSE ../htdocs ../root ../po package/luci-app-xray-lite/
           make defconfig
-          make package/luci-app-xray-lite/compile V=s
+          make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/apk
           find bin/ -type f -name "*xray-lite*.apk" -exec cp {} ../bin/apk/ \;
+          ls -la ../bin/apk/
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

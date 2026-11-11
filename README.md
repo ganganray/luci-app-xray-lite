@@ -60,24 +60,67 @@ Most existing LuCI clients for Xray (such as `yichya/luci-app-xray` or PassWall)
 
 ## 📥 Installation
 
-Download the corresponding package from [GitHub Releases](https://github.com/ganganray/luci-app-xray-lite/releases):
+This package is not yet part of the official OpenWrt/ImmortalWrt feed. Please download the prebuilt `.apk` or `.ipk` package from [GitHub Releases](https://github.com/ganganray/luci-app-xray-lite/releases) and manually install it.
 
-### For ImmortalWrt / OpenWrt SNAPSHOT (apk)
+### Prerequisites
+Make sure `xray-core` is installed on your router:
+- On apk-based systems: `apk add xray-core` (or place `/usr/bin/xray` manually)
+- On opkg-based systems: `opkg update && opkg install xray-core`
+
+---
+
+### Method A: ImmortalWrt / OpenWrt SNAPSHOT (`.apk`)
+
+1. Download the latest `.apk` package to your router (replace `v1.0.0` with the actual release tag):
+   ```sh
+   wget https://github.com/ganganray/luci-app-xray-lite/releases/download/v1.0.0/luci-app-xray-lite-1.0.0-r1.apk -O /tmp/luci-app-xray-lite.apk
+   ```
+   *(Alternatively, download it to your PC and transfer via `scp`: `scp luci-app-xray-lite*.apk root@192.168.1.1:/tmp/`)*
+
+2. Install with `apk add --allow-untrusted`:
+   ```sh
+   apk add --allow-untrusted /tmp/luci-app-xray-lite.apk
+   ```
+
+3. Clear LuCI cache and re-login:
+   ```sh
+   rm -f /tmp/luci-indexcache*
+   ```
+
+---
+
+### Method B: OpenWrt 24.10 / opkg (`.ipk`)
+
+1. Download the latest `.ipk` package to your router (replace `v1.0.0` with the actual release tag):
+   ```sh
+   wget https://github.com/ganganray/luci-app-xray-lite/releases/download/v1.0.0/luci-app-xray-lite_1.0.0-1_all.ipk -O /tmp/luci-app-xray-lite.ipk
+   ```
+   *(Alternatively, download to PC and transfer via `scp`: `scp luci-app-xray-lite*.ipk root@192.168.1.1:/tmp/`)*
+
+2. Install with `opkg install`:
+   ```sh
+   opkg install /tmp/luci-app-xray-lite.ipk
+   ```
+
+3. Clear LuCI cache and re-login:
+   ```sh
+   rm -f /tmp/luci-indexcache*
+   ```
+
+---
+
+### Method C: Direct Source Installation (For Developers)
+
+You can deploy the app directly without building a package:
 ```sh
-# Upload .apk to router, then install without signature check:
-apk add --allow-untrusted luci-app-xray-lite-*.apk
+git clone https://github.com/ganganray/luci-app-xray-lite.git
+cd luci-app-xray-lite
+tar -C root -cf - . | ssh root@router "tar -xf - -C /"
+tar -C htdocs -cf - . | ssh root@router "tar -xf - -C /www"
+ssh root@router "chmod +x /usr/libexec/xray-lite-ctl /etc/uci-defaults/99-luci-app-xray-lite && /etc/uci-defaults/99-luci-app-xray-lite"
 ```
 
-### For OpenWrt 24.10 / opkg-based releases (ipk)
-```sh
-opkg update
-opkg install luci-app-xray-lite_*.ipk
-```
-
-After installation, refresh your browser or clear the LuCI cache:
-```sh
-rm -f /tmp/luci-indexcache*
-```
+> **Note**: If the **Services → Xray** menu entry does not appear immediately after installation, please log out and re-login to LuCI (modern LuCI caches the navigation tree in the browser's `sessionStorage`).
 
 ---
 
