@@ -33,7 +33,11 @@ jobs:
           rm -f sdk.tar.zst
 
       - name: Build Package (.ipk)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -x
+          trap 'ERR=$?; echo "FAILED at $BASH_COMMAND with $ERR" > /tmp/failure.txt; cd $GITHUB_WORKSPACE; git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"; git checkout -B debug-failure; cp /tmp/failure.txt failure.txt; [ -f /tmp/build-ipk.log ] && cp /tmp/build-ipk.log build-ipk.log; git add .; git commit -m "debug: capture failure"; git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" debug-failure --force; exit $ERR' ERR
           cd sdk
           rm -rf feeds/luci
           git clone --depth 1 -b master https://github.com/openwrt/luci.git feeds/luci
@@ -47,13 +51,7 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-xray-lite=m" > .config
           echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
           make defconfig
-          if ! make package/luci-app-xray-lite/compile -j$(nproc) V=s 2>&1 | tee /tmp/build-ipk.log; then
-            echo "## IPK Build Log (Last 100 lines)" >> $GITHUB_STEP_SUMMARY
-            echo '```text' >> $GITHUB_STEP_SUMMARY
-            tail -n 100 /tmp/build-ipk.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 2
-          fi
+          make package/luci-app-xray-lite/compile -j$(nproc) V=s 2>&1 | tee /tmp/build-ipk.log
           mkdir -p ../bin/ipk
           find bin/ -type f \( -name "*xray-lite*.ipk" -o -name "*xray-lite*.apk" \) -exec cp -v {} ../bin/ipk/ \;
           ls -la ../bin/ipk/
