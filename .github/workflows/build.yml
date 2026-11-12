@@ -46,7 +46,19 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-xray-lite=m" > .config
           echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
           make defconfig
-          make package/luci-app-xray-lite/compile -j$(nproc) V=s
+          if ! make package/luci-app-xray-lite/compile -j$(nproc) V=s 2>&1 | tee /tmp/build-ipk.log; then
+            echo "::error::Build failed! Last 100 lines:"
+            tail -n 100 /tmp/build-ipk.log
+            cd ..
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            git checkout -B build-ipk-error
+            cp /tmp/build-ipk.log build-error.log
+            git add build-error.log
+            git commit -m "debug: capture build-ipk error log"
+            git push origin build-ipk-error --force
+            exit 2
+          fi
           mkdir -p ../bin/ipk
           find bin/ -type f \( -name "*xray-lite*.ipk" -o -name "*xray-lite*.apk" \) -exec cp -v {} ../bin/ipk/ \;
           ls -la ../bin/ipk/
