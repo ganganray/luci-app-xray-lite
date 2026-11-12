@@ -24,8 +24,8 @@ jobs:
 
       - name: Setup OpenWrt SDK (24.10)
         run: |
-          SDK_NAME=$(curl -sL --retry 3 https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/sha256sums | grep "openwrt-sdk" | awk -F'*' '{print $2}')
-          SDK_URL="https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/${SDK_NAME:-openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst}"
+          SDK_NAME=$(curl -sL --retry 3 https://downloads.openwrt.org/releases/24.10.8/targets/x86/64/sha256sums | grep "openwrt-sdk" | awk -F'*' '{print $2}')
+          SDK_URL="https://downloads.openwrt.org/releases/24.10.8/targets/x86/64/${SDK_NAME:-openwrt-sdk-24.10.8-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst}"
           echo "Downloading $SDK_URL..."
           curl -sL --retry 3 "$SDK_URL" -o sdk.tar.zst
           mkdir -p sdk
@@ -33,14 +33,11 @@ jobs:
           rm -f sdk.tar.zst
 
       - name: Build Package (.ipk)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -x
-          trap 'ERR=$?; echo "FAILED at $BASH_COMMAND with $ERR" > /tmp/failure.txt; cd $GITHUB_WORKSPACE; git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"; git checkout -B debug-failure; cp /tmp/failure.txt failure.txt; [ -f /tmp/build-ipk.log ] && cp /tmp/build-ipk.log build-ipk.log; git add .; git commit -m "debug: capture failure"; git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" debug-failure --force; exit $ERR' ERR
+          set -o pipefail
           cd sdk
           rm -rf feeds/luci
-          git clone --depth 1 -b master https://github.com/openwrt/luci.git feeds/luci
+          git clone --depth 1 -b openwrt-24.10 https://github.com/openwrt/luci.git feeds/luci
           make -C feeds/luci/modules/luci-base/src po2lmo
           sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/bin/po2lmo
           sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/local/bin/po2lmo
@@ -59,6 +56,18 @@ jobs:
             echo "Error: No .ipk package was generated!"
             exit 1
           fi
+
+      - name: Report Failure Diagnostic
+        if: failure()
+        run: |
+          echo "## IPK Build Failure Diagnostic" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          if [ -f /tmp/build-ipk.log ]; then
+            tail -n 200 /tmp/build-ipk.log >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No log found" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload IPK Artifact
         uses: actions/upload-artifact@v4
@@ -85,6 +94,7 @@ jobs:
 
       - name: Build Package (.apk)
         run: |
+          set -o pipefail
           cd sdk
           rm -rf feeds/luci
           git clone --depth 1 -b master https://github.com/openwrt/luci.git feeds/luci
@@ -98,7 +108,7 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-xray-lite=m" > .config
           echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
           make defconfig
-          make package/luci-app-xray-lite/compile -j$(nproc) V=s
+          make package/luci-app-xray-lite/compile -j$(nproc) V=s 2>&1 | tee /tmp/build-apk.log
           mkdir -p ../bin/apk
           find bin/ -type f \( -name "*xray-lite*.apk" -o -name "*xray-lite*.ipk" \) -exec cp -v {} ../bin/apk/ \;
           ls -la ../bin/apk/
@@ -106,6 +116,18 @@ jobs:
             echo "Error: No .apk package was generated!"
             exit 1
           fi
+
+      - name: Report Failure Diagnostic
+        if: failure()
+        run: |
+          echo "## APK Build Failure Diagnostic" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          if [ -f /tmp/build-apk.log ]; then
+            tail -n 200 /tmp/build-apk.log >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No log found" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
