@@ -47,8 +47,8 @@ jobs:
           echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
           make defconfig
           if ! make package/luci-app-xray-lite/compile -j$(nproc) V=s 2>&1 | tee /tmp/build-ipk.log; then
-            echo "::error::Build failed! Last 100 lines:"
-            tail -n 100 /tmp/build-ipk.log
+            ERR_MSG=$(tail -n 25 /tmp/build-ipk.log | tr -d '\r' | tr '\n' ' ' | cut -c 1-2000)
+            echo "::error title=IPK_Build_Failure::$ERR_MSG"
             cd ..
             git config --global user.name "github-actions[bot]"
             git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -56,7 +56,7 @@ jobs:
             cp /tmp/build-ipk.log build-error.log
             git add build-error.log
             git commit -m "debug: capture build-ipk error log"
-            git push origin build-ipk-error --force
+            git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" build-ipk-error --force || true
             exit 2
           fi
           mkdir -p ../bin/ipk
