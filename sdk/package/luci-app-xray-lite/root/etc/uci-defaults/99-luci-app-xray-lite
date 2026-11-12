@@ -1,0 +1,19 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2026 ganganray <https://github.com/ganganray>
+
+# Ensure /etc/config/xray exists on clean or non-standard installs
+if [ -x /usr/libexec/xray-lite-ctl ]; then
+	/usr/libexec/xray-lite-ctl ensure-uci
+fi
+
+# Clean LuCI menu & index cache
+rm -f /tmp/luci-indexcache*
+rm -rf /tmp/luci-modulecache/*
+
+# Reload rpcd to apply new ACL permissions
+if [ -x /etc/init.d/rpcd ]; then
+	/etc/init.d/rpcd reload
+fi
+
+exit 0

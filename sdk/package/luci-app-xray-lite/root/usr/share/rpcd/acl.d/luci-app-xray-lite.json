@@ -1,0 +1,21 @@
+{
+	"luci-app-xray-lite": {
+		"description": "Grant access to Xray Lite configuration and control",
+		"read": {
+			"file": {
+				"/usr/libexec/xray-lite-ctl": [ "exec" ]
+			},
+			"ubus": {
+				"service": [ "list" ]
+			},
+			"uci": [ "xray" ]
+		},
+		"write": {
+			"file": {
+				"/etc/xray/.xray-lite.tmp": [ "write" ],
+				"/usr/libexec/xray-lite-ctl": [ "exec" ]
+			},
+			"uci": [ "xray" ]
+		}
+	}
+}

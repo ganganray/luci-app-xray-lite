@@ -1,0 +1,1 @@
+cmd_/builder/shared-workdir/build/build_dir/target-x86_64_musl/linux-x86_64/linux-6.6.73/tools/objtool/fixdep-in.o :=  ld -r -o /builder/shared-workdir/build/build_dir/target-x86_64_musl/linux-x86_64/linux-6.6.73/tools/objtool/fixdep-in.o  /builder/shared-workdir/build/build_dir/target-x86_64_musl/linux-x86_64/linux-6.6.73/tools/objtool/fixdep.o

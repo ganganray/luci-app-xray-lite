@@ -1,0 +1,39 @@
+{
+	"admin/services/xray-lite": {
+		"title": "Xray",
+		"action": {
+			"type": "firstchild"
+		},
+		"depends": {
+			"acl": [ "luci-app-xray-lite" ],
+			"fs": {
+				"/etc/init.d/xray": "executable"
+			},
+			"uci": { "xray": true }
+		}
+	},
+	"admin/services/xray-lite/settings": {
+		"title": "Settings",
+		"order": 10,
+		"action": {
+			"type": "view",
+			"path": "xray-lite/settings"
+		}
+	},
+	"admin/services/xray-lite/config": {
+		"title": "Configuration",
+		"order": 20,
+		"action": {
+			"type": "view",
+			"path": "xray-lite/config"
+		}
+	},
+	"admin/services/xray-lite/log": {
+		"title": "Log",
+		"order": 30,
+		"action": {
+			"type": "view",
+			"path": "xray-lite/log"
+		}
+	}
+}

@@ -1,0 +1,43 @@
+Description:
+posix_fallocate function that is glibc compatible.
+
+Files:
+lib/posix_fallocate.c
+m4/fcntl_h.m4
+m4/posix_fallocate.m4
+
+Depends-on:
+errno          [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1]
+fcntl          [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1]
+fstat          [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1]
+ftruncate      [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1]
+pread          [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1]
+pwrite         [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1]
+stdint         [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1]
+sys_stat       [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1]
+unistd         [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1]
+fcntl-h
+
+configure.ac:
+gl_FUNC_POSIX_FALLOCATE
+gl_CONDITIONAL([GL_COND_OBJ_POSIX_FALLOCATE],
+               [test $HAVE_FALLOCATE_POSIX = 0 || test $REPLACE_FALLOCATE_POSIX = 1])
+AM_COND_IF([GL_COND_OBJ_POSIX_FALLOCATE], [
+  gl_PREREQ_POSIX_FALLOCATE
+])
+gl_MODULE_INDICATOR([fallocate-posix])
+gl_FCNTL_MODULE_INDICATOR([fallocate-posix])
+
+Makefile.am:
+if GL_COND_OBJ_POSIX_FALLOCATE
+lib_SOURCES += posix_fallocate.c
+endif
+
+Include:
+<fcntl.h>
+
+License:
+LGPLv2+
+
+Maintainer:
+all

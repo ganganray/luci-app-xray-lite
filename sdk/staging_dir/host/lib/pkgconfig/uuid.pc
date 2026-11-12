@@ -1,0 +1,10 @@
+prefix=/builder/shared-workdir/build/staging_dir/host
+exec_prefix=/builder/shared-workdir/build/staging_dir/host
+libdir=/builder/shared-workdir/build/staging_dir/host/lib
+includedir=/builder/shared-workdir/build/staging_dir/host/include
+
+Name: uuid
+Description: Universally unique id library
+Version: 2.40.2
+Cflags: -I${includedir}/uuid
+Libs: -L${libdir} -luuid -lpthread
