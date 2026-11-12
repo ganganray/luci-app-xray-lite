@@ -35,7 +35,7 @@ jobs:
       - name: Build Package (.ipk)
         run: |
           cd sdk
-          git clone --depth 1 -b openwrt-24.10 https://github.com/openwrt/luci.git feeds/luci
+          git clone --depth 1 -b master https://github.com/openwrt/luci.git feeds/luci
           make -C feeds/luci/modules/luci-base/src po2lmo
           sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/bin/po2lmo
           sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/local/bin/po2lmo
@@ -48,7 +48,7 @@ jobs:
           make defconfig
           make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/ipk
-          find bin/ -type f -name "*xray-lite*.ipk" -exec cp -v {} ../bin/ipk/ \;
+          find bin/ -type f \( -name "*xray-lite*.ipk" -o -name "*xray-lite*.apk" \) -exec cp -v {} ../bin/ipk/ \;
           ls -la ../bin/ipk/
           if [ -z "$(ls -A ../bin/ipk 2>/dev/null)" ]; then
             echo "Error: No .ipk package was generated!"
