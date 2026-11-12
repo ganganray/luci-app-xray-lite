@@ -47,7 +47,13 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-xray-lite=m" > .config
           echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
           make defconfig
-          make package/luci-app-xray-lite/compile -j$(nproc) V=s
+          if ! make package/luci-app-xray-lite/compile -j$(nproc) V=s 2>&1 | tee /tmp/build-ipk.log; then
+            echo "## IPK Build Log (Last 100 lines)" >> $GITHUB_STEP_SUMMARY
+            echo '```text' >> $GITHUB_STEP_SUMMARY
+            tail -n 100 /tmp/build-ipk.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 2
+          fi
           mkdir -p ../bin/ipk
           find bin/ -type f \( -name "*xray-lite*.ipk" -o -name "*xray-lite*.apk" \) -exec cp -v {} ../bin/ipk/ \;
           ls -la ../bin/ipk/
