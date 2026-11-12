@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI support for Xray (Lite backend mode)
 LUCI_PKGARCH:=all
-LUCI_EXTRA_DEPENDS:=luci-base, xray-core
+LUCI_DEPENDS:=+luci-base +xray-core
 
 PKG_NAME:=luci-app-xray-lite
 PKG_VERSION:=1.0.0
