@@ -35,6 +35,7 @@ jobs:
       - name: Build Package (.ipk)
         run: |
           cd sdk
+          rm -rf feeds/luci
           git clone --depth 1 -b master https://github.com/openwrt/luci.git feeds/luci
           make -C feeds/luci/modules/luci-base/src po2lmo
           sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/bin/po2lmo
@@ -46,13 +47,7 @@ jobs:
           echo "CONFIG_PACKAGE_luci-app-xray-lite=m" > .config
           echo "CONFIG_PACKAGE_luci-i18n-xray-lite-zh-cn=m" >> .config
           make defconfig
-          if ! make package/luci-app-xray-lite/compile -j$(nproc) V=s 2>&1 | tee /tmp/build-ipk.log; then
-            echo "### IPK Build Failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 150 /tmp/build-ipk.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 2
-          fi
+          make package/luci-app-xray-lite/compile -j$(nproc) V=s
           mkdir -p ../bin/ipk
           find bin/ -type f \( -name "*xray-lite*.ipk" -o -name "*xray-lite*.apk" \) -exec cp -v {} ../bin/ipk/ \;
           ls -la ../bin/ipk/
@@ -87,6 +82,7 @@ jobs:
       - name: Build Package (.apk)
         run: |
           cd sdk
+          rm -rf feeds/luci
           git clone --depth 1 -b master https://github.com/openwrt/luci.git feeds/luci
           make -C feeds/luci/modules/luci-base/src po2lmo
           sudo cp feeds/luci/modules/luci-base/src/po2lmo /usr/bin/po2lmo
