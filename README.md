@@ -93,7 +93,7 @@ Make sure `xray-core` is installed on your router:
 
 1. Download the latest `.ipk` package to your router (replace `v1.0.0` with the actual release tag):
    ```sh
-   wget https://github.com/ganganray/luci-app-xray-lite/releases/download/v1.0.0/luci-app-xray-lite_1.0.0-1_all.ipk -O /tmp/luci-app-xray-lite.ipk
+   wget https://github.com/ganganray/luci-app-xray-lite/releases/download/v1.0.0/luci-app-xray-lite_1.0.0-r1_all.ipk -O /tmp/luci-app-xray-lite.ipk
    ```
    *(Alternatively, download to PC and transfer via `scp`: `scp luci-app-xray-lite*.ipk root@192.168.1.1:/tmp/`)*
 

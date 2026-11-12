@@ -93,7 +93,7 @@
 
 1. 在路由器上直接下载最新的 `.ipk` 安装包（请将 `v1.0.0` 替换为最新版本号）：
    ```sh
-   wget https://github.com/ganganray/luci-app-xray-lite/releases/download/v1.0.0/luci-app-xray-lite_1.0.0-1_all.ipk -O /tmp/luci-app-xray-lite.ipk
+   wget https://github.com/ganganray/luci-app-xray-lite/releases/download/v1.0.0/luci-app-xray-lite_1.0.0-r1_all.ipk -O /tmp/luci-app-xray-lite.ipk
    ```
    *(或者先下载到电脑，通过 SCP 上传：`scp luci-app-xray-lite*.ipk root@192.168.1.1:/tmp/`)*
 
